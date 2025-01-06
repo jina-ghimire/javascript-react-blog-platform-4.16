@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import '../styles/SignIn.css';
+import "../styles/SignIn.css";
 
 const SignIn = ({ setUser }) => {
   const [email, setEmail] = useState("");
@@ -9,11 +9,27 @@ const SignIn = ({ setUser }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validate inputs
+    if (!email || !password) {
+      alert("Email and password are required");
+      return;
+    }
+
     const users = JSON.parse(localStorage.getItem("users")) || [];
     const user = users.find((u) => u.email === email && u.password === password);
+
     if (user) {
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
+
+      // Initialize or fetch user-specific liked posts
+      const userLikesKey = `likes_${user.email}`;
+      const userLikes = JSON.parse(localStorage.getItem(userLikesKey)) || []; // Ensure existence
+
+      // Optional: If needed to persist temporarily
+      localStorage.setItem("currentLikes", JSON.stringify(userLikes));
+
       navigate("/posts");
     } else {
       alert("Invalid email or password");
@@ -34,7 +50,6 @@ const SignIn = ({ setUser }) => {
             required
           />
         </div>
-        
         <div>
           <label>Password</label>
           <input
@@ -50,12 +65,7 @@ const SignIn = ({ setUser }) => {
         </button>
         <p>
           Don't have an account?{" "}
-          <span
-            className="link"
-            onClick={() => navigate("/sign-up")}
-          >
-            Sign Up
-          </span>
+          <span className="link" onClick={() => navigate("/sign-up")}>Sign Up</span>
         </p>
       </form>
     </div>

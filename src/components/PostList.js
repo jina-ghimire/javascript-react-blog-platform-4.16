@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../styles/PostList.css";
 
-const PostList = () => {
+const PostList = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,9 +43,14 @@ const PostList = () => {
         setPosts(combinedPosts);
         setTotalPages(Math.ceil(combinedPosts.length / 10));
 
-        // Load liked posts from localStorage
-        const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || [];
-        setLikedPosts(storedLikes);
+        // Load liked posts for the logged-in user from localStorage
+        if (user) {
+          const userLikesKey = `likes_${user.email}`;
+          const storedLikes = JSON.parse(localStorage.getItem(userLikesKey)) || [];
+          setLikedPosts(storedLikes);
+        } else {
+          setLikedPosts([]); // Clear likes if no user is logged in
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -54,19 +59,26 @@ const PostList = () => {
     };
 
     fetchPosts();
-  }, [location]);
+  }, [location, user]);
 
   const handlePageClick = (pageNum) => {
     setPage(pageNum);
   };
 
   const toggleLike = (postId) => {
-    const updatedLikedPosts = likedPosts.includes(postId)
+    console.log("Current user:", user); // Debugging
+    if (!user || !user.email) {
+      alert("Please log in to like posts.");
+      return;
+    }
+
+    const userLikesKey = `likes_${user.email}`;
+    const userLikes = likedPosts.includes(postId)
       ? likedPosts.filter((id) => id !== postId) // Remove like
       : [...likedPosts, postId]; // Add like
 
-    setLikedPosts(updatedLikedPosts);
-    localStorage.setItem("likedPosts", JSON.stringify(updatedLikedPosts));
+    setLikedPosts(userLikes);
+    localStorage.setItem(userLikesKey, JSON.stringify(userLikes));
   };
 
   return (

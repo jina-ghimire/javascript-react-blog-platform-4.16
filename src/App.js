@@ -44,17 +44,17 @@ function App() {
               </>
             ) : (
               <>
-              <Link to="/new-post" className="create-article-btn">Create article</Link>
-               <Link to="/profile" className="nav-link">
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                alt="User Avatar"
-                className="avatar"
-              />
-            ) : null}
-            {user.username || "Profile"}
-          </Link>
+                <Link to="/new-post" className="create-article-btn">Create article</Link>
+                <Link to="/profile" className="nav-link">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="User Avatar"
+                      className="avatar"
+                    />
+                  ) : null}
+                  {user.username || "Profile"}
+                </Link>
                 <button onClick={handleLogout} className="nav-button">Log Out</button>
               </>
             )}
@@ -62,13 +62,42 @@ function App() {
         </nav>
       </header>
       <Routes>
-        <Route path="/posts" element={<PostList />} />
-        <Route path="/posts/:id" element={<PostDetail />} />
-        <Route path="/posts/:id/edit" element={<PrivateRoute><EditPost /></PrivateRoute>} />
-        <Route path="/new-post" element={<PrivateRoute><NewPost /></PrivateRoute>} />
-        <Route path="/sign-in" element={!user ? <SignIn setUser={setUser} /> : <Navigate to="/posts" />} />
-        <Route path="/sign-up" element={!user ? <SignUp /> : <Navigate to="/posts" />} />
-        <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/sign-in" />} />
+        <Route path="/posts" element={<PostList user={user} />} />
+        <Route path="/posts/:id" element={<PostDetail user={user} />} />
+        <Route
+          path="/posts/:id/edit"
+          element={
+            <PrivateRoute>
+              <EditPost user={user} />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-post"
+          element={
+            <PrivateRoute>
+              <NewPost user={user} />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/sign-in"
+          element={
+            !user ? <SignIn setUser={setUser} /> : <Navigate to="/posts" />
+          }
+        />
+        <Route
+          path="/sign-up"
+          element={
+            !user ? <SignUp /> : <Navigate to="/posts" />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/sign-in" />
+          }
+        />
       </Routes>
     </Router>
   );

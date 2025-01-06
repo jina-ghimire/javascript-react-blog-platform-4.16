@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/PostDetail.css";
 
-const PostDetail = () => {
+const PostDetail = ({ user }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
@@ -75,6 +75,8 @@ const PostDetail = () => {
     }
   };
 
+  const isPostOwner = user && post && post.author && post.author.email === user.email;
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="error">{error}</p>;
   if (!post) return null;
@@ -95,17 +97,19 @@ const PostDetail = () => {
           )}
           <div className="paragraph">
             <p>{post.body}</p>
-            <div className="button-group">
-              <button
-                className="edit-button"
-                onClick={() => navigate(`/posts/${id}/edit`)}
-              >
-                Edit
-              </button>
-              <button className="delete-button" onClick={handleDelete}>
-                Delete
-              </button>
-            </div>
+            {isPostOwner && (
+              <div className="button-group">
+                <button
+                  className="edit-button"
+                  onClick={() => navigate(`/posts/${id}/edit`)}
+                >
+                  Edit
+                </button>
+                <button className="delete-button" onClick={handleDelete}>
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
 
           <h2>Comments</h2>

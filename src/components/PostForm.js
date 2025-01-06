@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const PostForm = ({ isEdit = false }) => {
+const PostForm = ({ isEdit = false, user }) => {
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [body, setBody] = useState("");
@@ -17,14 +17,12 @@ const PostForm = ({ isEdit = false }) => {
       const postFromStorage = posts.find((post) => post.id === Number(id));
 
       if (postFromStorage) {
-        // Load post from localStorage
         setTitle(postFromStorage.title || "");
         setShortDescription(postFromStorage.shortDescription || "");
         setBody(postFromStorage.body || "");
-        setTags(postFromStorage.tags || []); // Load tags
-        setComments(postFromStorage.comments || []); // Load comments
+        setTags(postFromStorage.tags || []);
+        setComments(postFromStorage.comments || []);
       } else {
-        // Load post from API
         const fetchPost = async () => {
           try {
             const response = await fetch(
@@ -35,17 +33,15 @@ const PostForm = ({ isEdit = false }) => {
             setTitle(apiPost.title || "");
             setShortDescription(apiPost.body.substring(0, 50) || "");
             setBody(apiPost.body || "");
-            setTags([]); // Default empty tags for API posts
-
-            // Fetch comments for API posts
+            setTags([]);
             const commentsResponse = await fetch(
               `https://jsonplaceholder.typicode.com/comments?postId=${id}`
             );
             if (commentsResponse.ok) {
               const apiComments = await commentsResponse.json();
-              setComments(apiComments); // Set comments fetched from API
+              setComments(apiComments);
             } else {
-              setComments([]); // Default to empty comments if fetch fails
+              setComments([]);
             }
           } catch (error) {
             console.error("Error fetching post from API:", error);
@@ -65,8 +61,10 @@ const PostForm = ({ isEdit = false }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    console.log("Tags before submit:", tags); // Debugging
-    console.log("Comments before submit:", comments); // Debugging
+    if (!user) {
+      alert("You must be logged in to create or edit posts.");
+      return;
+    }
 
     const posts = JSON.parse(localStorage.getItem("posts")) || [];
     const newId = isEdit ? Number(id) : generateUniqueId(posts);
@@ -76,11 +74,10 @@ const PostForm = ({ isEdit = false }) => {
       title,
       shortDescription,
       body,
-      tags, // Include updated tags here
-      comments, // Preserve comments during edit
+      tags,
+      comments,
+      author: user, // Track the post's author
     };
-
-    console.log("New post object being saved:", newPost); // Debugging
 
     const isApiPost = !posts.find((post) => post.id === Number(id));
     const updatedPosts = isEdit
@@ -90,17 +87,14 @@ const PostForm = ({ isEdit = false }) => {
       : [newPost, ...posts];
 
     localStorage.setItem("posts", JSON.stringify(updatedPosts));
-    console.log("Updated Posts in LocalStorage:", updatedPosts); // Debugging
     navigate("/posts");
   };
 
   const handleAddTag = () => {
-    console.log("New tag input:", newTag); // Debugging
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       const updatedTags = [...tags, newTag.trim()];
       setTags(updatedTags);
-      console.log("Updated tags after adding:", updatedTags); // Debugging
-      setNewTag(""); // Clear the input
+      setNewTag("");
     } else {
       alert("Tag is either empty or already exists.");
     }
@@ -161,10 +155,7 @@ const PostForm = ({ isEdit = false }) => {
             <input
               type="text"
               value={newTag}
-              onChange={(e) => {
-                setNewTag(e.target.value);
-                console.log("New tag input value:", e.target.value); // Debugging
-              }}
+              onChange={(e) => setNewTag(e.target.value)}
               placeholder="Tag"
             />
             <button type="button" onClick={handleAddTag} className="add-tag">
